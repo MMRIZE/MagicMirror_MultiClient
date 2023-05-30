@@ -23,6 +23,10 @@ const MM = (function () {
 			}
 
 			const wrapper = selectWrapper(module.data.position);
+			if (!wrapper) {
+				throw new Error(`Invalid position for module: ${module.name} - ${module.data.position}`);
+				// return;
+			}
 
 			const dom = document.createElement("div");
 			dom.id = module.identifier;
@@ -74,6 +78,7 @@ const MM = (function () {
 	const selectWrapper = function (position) {
 		const classes = position.replace("_", " ");
 		const parentWrapper = document.getElementsByClassName(classes);
+		if (!parentWrapper) return;
 		if (parentWrapper.length > 0) {
 			const wrapper = parentWrapper[0].getElementsByClassName("container");
 			if (wrapper.length > 0) {
@@ -337,6 +342,7 @@ const MM = (function () {
 
 		positions.forEach(function (position) {
 			const wrapper = selectWrapper(position);
+			if (!wrapper) return;
 			const moduleWrappers = wrapper.getElementsByClassName("module");
 
 			let showWrapper = false;

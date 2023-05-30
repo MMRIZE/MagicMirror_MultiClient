@@ -29,6 +29,9 @@ const defaults = {
 	// e.g. you need to add `frameguard: false` for embedding MagicMirror in another website, see https://github.com/MichMich/MagicMirror/issues/2847
 	httpHeaders: { contentSecurityPolicy: false, crossOriginOpenerPolicy: false, crossOriginEmbedderPolicy: false, crossOriginResourcePolicy: false, originAgentCluster: false },
 
+	layout: "layout/default.html",
+	clientID: "default",
+
 	modules: [
 		{
 			module: "updatenotification",

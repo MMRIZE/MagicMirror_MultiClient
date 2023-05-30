@@ -15,6 +15,9 @@ _This release is scheduled to be released on 2023-07-01._
 - Added tests for serveronly
 - Set Timezone `Europe/Berlin` in unit tests (needed for new formatTime tests)
 - Added no-param-reassign eslint rule and fix warnings
+- Multi-screen clients available
+- Different configurations for clients available
+- `layout` templatation to be customizable for client
 
 ### Removed
 
@@ -28,6 +31,7 @@ _This release is scheduled to be released on 2023-07-01._
 - Refactor formatTime into common util function for default modules
 - Refactor some calendar methods into own class and added tests for them
 - Split install and run commands in github actions
+- `clientonly` executable without server activation
 
 ### Fixed
 

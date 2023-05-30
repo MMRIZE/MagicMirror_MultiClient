@@ -1,8 +1,20 @@
 "use strict";
 
 const electron = require("electron");
-const core = require("./app");
-const Log = require("./logger");
+/* no need */
+//const core = require("../app");
+const Log = require("../js/logger");
+//const fetch = require("../js/fetch");
+//const path = require("path");
+
+/**
+ * Build url from object
+ * @param {*} object to build url from
+ * @returns {string} url
+ */
+function buildURL({ protocol = "http", hostname = "localhost", port = 8080, pathname = "/", search = "" }) {
+	return `${protocol}://${hostname}:${port}${pathname}${search}`;
+}
 
 // Config
 let config = process.env.config ? JSON.parse(process.env.config) : {};
@@ -22,7 +34,7 @@ const BrowserWindow = electron.BrowserWindow;
 let mainWindow;
 
 /**
- * Create the main window
+ *
  */
 function createWindow() {
 	let electronSwitchesDefaults = ["autoplay-policy", "no-user-gesture-required"];
@@ -60,15 +72,11 @@ function createWindow() {
 	// and load the index.html of the app.
 	// If config.address is not defined or is an empty string (listening on all interfaces), connect to localhost
 
-	let prefix;
-	if ((config["tls"] !== null && config["tls"]) || config.useHttps) {
-		prefix = "https://";
-	} else {
-		prefix = "http://";
-	}
+	let protocol = (config["tls"] !== null && config["tls"]) || config.useHttps ? "https" : "http";
 
-	let address = (config.address === void 0) | (config.address === "") ? (config.address = "localhost") : config.address;
-	mainWindow.loadURL(`${prefix}${address}:${config.port}`);
+	let hostname = (config.address === void 0) | (config.address === "") ? (config.address = "localhost") : config.address;
+	let url = buildURL({ protocol, hostname, port: config.port, pathname: "/", search: `?client=${config.client}` });
+	mainWindow.loadURL(url);
 
 	// Open the DevTools if run with "npm start dev"
 	if (process.argv.includes("dev")) {
@@ -150,6 +158,10 @@ app.on("activate", function () {
  * Note: this is only used if running Electron. Otherwise
  * core.stop() is called by process.on("SIGINT"... in `app.js`
  */
+
+/* This method will not be valid in clientonly mode. */
+
+/*
 app.on("before-quit", async (event) => {
 	Log.log("Shutting down server...");
 	event.preventDefault();
@@ -159,6 +171,7 @@ app.on("before-quit", async (event) => {
 	await core.stop();
 	process.exit(0);
 });
+*/
 
 /**
  * Handle errors from self-signed certificates
@@ -170,6 +183,9 @@ app.on("certificate-error", (event, webContents, url, error, certificate, callba
 
 // Start the core application if server is run on localhost
 // This starts all node helpers and starts the webserver.
+
+/* This will not valid in clientonly mode. */
+/*
 if (["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1", undefined].includes(config.address)) {
 	core.start().then((c) => {
 		config = c;
@@ -179,3 +195,9 @@ if (["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1", undefined].includes(co
 		});
 	});
 }
+*/
+app.whenReady().then(() => {
+	Log.log("Launching application.");
+
+	createWindow();
+});

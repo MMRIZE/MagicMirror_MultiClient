@@ -9,7 +9,20 @@ const fetch = require("./fetch");
  * @param {Response} res - the result
  */
 function getConfig(req, res) {
-	res.send(config);
+	let configFile = req?.param?.configFile || null;
+	if (!configFile) {
+		res.send(config);
+	} else {
+		const configPath = path.resolve(configFile);
+		if (fs.existsSync(configPath)) {
+			Log.info(`Using config file: ${configPath}`);
+			const clientConfig = require(configPath);
+			res.send(clientConfig);
+		} else {
+			Log.warn(`Config file not found: ${configPath}`);
+			res.send(config);
+		}
+	}
 }
 
 /**
@@ -100,13 +113,16 @@ function getHtml(req, res) {
 	let html = fs.readFileSync(path.resolve(`${global.root_path}/index.html`), { encoding: "utf8" });
 	html = html.replace("#VERSION#", global.version);
 
-	let configFile = "config/config.js";
+	//let configFile = "config/config.js";
+	//let configFile = "config/" + (req?.query?.client || "config") + ".js";
+	let configFile = `config/${req?.query?.client || "config"}.js`;
+
 	if (typeof global.configuration_file !== "undefined") {
 		configFile = global.configuration_file;
 	}
 	html = html.replace("#CONFIG_FILE#", configFile);
-
 	res.send(html);
+	Log.log(`Serving HTML with configuration: ${configFile}`);
 }
 
 /**

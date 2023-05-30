@@ -70,6 +70,10 @@ Temporary Items
 /config/*
 !/config/config.js.sample
 
+# Ignore layout files but keep the sample.
+/layouts/*
+!/layouts/default.html.sample
+
 # Vim
 ## swap
 [._]*.s[a-w][a-z]

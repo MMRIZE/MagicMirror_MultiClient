@@ -22,7 +22,7 @@
 		}
 
 		// Prefer command line arguments over environment variables
-		["address", "port"].forEach((key) => {
+		["address", "port", "client"].forEach((key) => {
 			config[key] = getCommandLineParameter(key, process.env[key.toUpperCase()]);
 		});
 
@@ -36,7 +36,7 @@
 	 * @returns {Promise} the config
 	 */
 	function getServerConfig(url) {
-		// Return new pending promise
+		console.log("Client: config:", url);
 		return new Promise((resolve, reject) => {
 			// Select http or https module, depending on requested url
 			const lib = url.startsWith("https") ? require("https") : require("http");
@@ -49,6 +49,7 @@
 				});
 				// Resolve promise at the end of the HTTP/HTTPS stream
 				response.on("end", function () {
+					console.log(configData);
 					resolve(JSON.parse(configData));
 				});
 			});
@@ -68,7 +69,7 @@
 		if (message !== undefined && typeof message === "string") {
 			console.log(message);
 		} else {
-			console.log("Usage: 'node clientonly --address 192.168.1.10 --port 8080 [--use-tls]'");
+			console.log("Usage: 'node clientonly --address 192.168.1.10 --port 8080 --client client1 [--use-tls]'");
 		}
 		process.exit(code);
 	}
@@ -78,7 +79,9 @@
 	(config.address && config.port) || fail();
 	const prefix = config.tls ? "https://" : "http://";
 
-	// Only start the client if a non-local server was provided
+	// [DEPRECATED] Only start the client if a non-local server was provided
+	// Because, to be honest, I don't know why this is needed. Multiple clients can connect to the same local server to keep multi-screens.
+	/*
 	if (["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1", undefined].indexOf(config.address) === -1) {
 		getServerConfig(`${prefix}${config.address}:${config.port}/config/`)
 			.then(function (configReturn) {
@@ -120,4 +123,46 @@
 	} else {
 		fail();
 	}
+	*/
+	// Allow multiple clients to connect to the same local server to keep multi-screens.
+	getServerConfig(`${prefix}${config.address}:${config.port}/config/${config.client}`)
+		.then(function (configReturn) {
+			// Pass along the server config via an environment variable
+			const env = Object.create(process.env);
+
+			env.config = JSON.stringify({
+				address: config.address,
+				port: config.port,
+				tls: config.tls,
+				client: config.client
+			});
+			const options = { env: env };
+
+			// Spawn electron application
+			const electron = require("electron");
+			const child = require("child_process").spawn(electron, ["clientonly/clientonly.js"], options);
+
+			// Pipe all child process output to current stdout
+			child.stdout.on("data", function (buf) {
+				process.stdout.write(`Client: ${buf}`);
+			});
+
+			// Pipe all child process errors to current stderr
+			child.stderr.on("data", function (buf) {
+				process.stderr.write(`Client: ${buf}`);
+			});
+
+			child.on("error", function (err) {
+				process.stdout.write(`Client: ${err}`);
+			});
+
+			child.on("close", (code) => {
+				if (code !== 0) {
+					console.log(`There something wrong. The clientonly is not running code ${code}`);
+				}
+			});
+		})
+		.catch(function (reason) {
+			fail(`Unable to connect to server: (${reason})`);
+		});
 })();
