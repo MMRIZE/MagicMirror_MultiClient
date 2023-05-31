@@ -45,6 +45,6 @@ const MMSocket = function (moduleName) {
 	};
 
 	this.sendNotification = (notification, payload = {}) => {
-		this.socket.emit(notification, payload, config?.clientID || null);
+		this.socket.emit(notification, payload, config?.client || null);
 	};
 };

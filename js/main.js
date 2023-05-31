@@ -9,6 +9,26 @@
 const MM = (function () {
 	let modules = [];
 
+	const legacyPositions = [
+		"fullscreen_above",
+		"fullscreen_below",
+		"bottom_bar",
+		"upper_third",
+		"middle_center",
+		"lower_third",
+		"bottom_left",
+		"bottom_center",
+		"bottom_right",
+		"upper_left",
+		"upper_center",
+		"upper_right",
+		"middle_left",
+		"middle_right",
+		"lower_left",
+		"lower_center",
+		"lower_right"
+	];
+
 	/* Private Methods */
 
 	/**
@@ -469,11 +489,13 @@ const MM = (function () {
 		 */
 		init: async function () {
 			Log.info("Initializing MagicMirror².");
+			console.log(config);
 			loadConfig();
 
 			Log.setLogLevel(config.logLevel);
 
 			await Translator.loadCoreTranslations(config.language);
+			await Loader.loadLayout();
 			await Loader.loadModules();
 		},
 

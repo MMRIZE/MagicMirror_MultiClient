@@ -67,12 +67,12 @@ Temporary Items
 /css/custom.css
 
 # Ignore users config file but keep the sample.
-/config/*
-!/config/config.js.sample
+#/config/*
+#!/config/config.js.sample
 
 # Ignore layout files but keep the sample.
-/layouts/*
-!/layouts/default.html.sample
+#/layout/*
+#!/layout/default.html.sample
 
 # Vim
 ## swap

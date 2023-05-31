@@ -22,12 +22,16 @@
 		}
 
 		// Prefer command line arguments over environment variables
-		["address", "port", "client"].forEach((key) => {
+		["address", "port"].forEach((key) => {
 			config[key] = getCommandLineParameter(key, process.env[key.toUpperCase()]);
 		});
 
 		// determine if "--use-tls"-flag was provided
 		config["tls"] = process.argv.indexOf("--use-tls") > 0;
+
+		config["client"] = getCommandLineParameter("client", process.env?.["CLIENT"] || "default");
+
+		config["display"] = getCommandLineParameter("display", process.env?.["DISPLAY"] || null);
 	}
 
 	/**
@@ -36,7 +40,6 @@
 	 * @returns {Promise} the config
 	 */
 	function getServerConfig(url) {
-		console.log("Client: config:", url);
 		return new Promise((resolve, reject) => {
 			// Select http or https module, depending on requested url
 			const lib = url.startsWith("https") ? require("https") : require("http");
@@ -49,7 +52,6 @@
 				});
 				// Resolve promise at the end of the HTTP/HTTPS stream
 				response.on("end", function () {
-					console.log(configData);
 					resolve(JSON.parse(configData));
 				});
 			});
@@ -69,7 +71,7 @@
 		if (message !== undefined && typeof message === "string") {
 			console.log(message);
 		} else {
-			console.log("Usage: 'node clientonly --address 192.168.1.10 --port 8080 --client client1 [--use-tls]'");
+			console.log("Usage: 'node clientonly --address 192.168.1.10 --port 8080 --client client1 [--screen 1] [--use-tls]'");
 		}
 		process.exit(code);
 	}
@@ -134,7 +136,8 @@
 				address: config.address,
 				port: config.port,
 				tls: config.tls,
-				client: config.client
+				client: config.client,
+				display: config.display
 			});
 			const options = { env: env };
 

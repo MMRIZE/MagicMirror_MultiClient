@@ -252,6 +252,14 @@ const Loader = (function () {
 			// Load it based on the module path.
 			loadedFiles.push(fileName.toLowerCase());
 			return loadFile(module.file(fileName));
-		}
+		},
+
+		/**
+		 * Load a custom layout
+		 * @param {string} layout The name of the layout we want to load.
+		 * @returns {Promise} resolved when the layout is loaded
+		 */
+
+		loadLayout: async function (layout) {}
 	};
 })();

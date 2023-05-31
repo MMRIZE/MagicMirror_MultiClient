@@ -112,15 +112,18 @@ function geExpectedRecievedHeaders(url) {
 function getHtml(req, res) {
 	let html = fs.readFileSync(path.resolve(`${global.root_path}/index.html`), { encoding: "utf8" });
 	html = html.replace("#VERSION#", global.version);
+	let { client = "default", config, layout, css } = req?.query || {};
+	config = config || (client !== "default" ? client : "config");
+	layout = layout || (client !== "default" ? client : "default");
+	css = css || layout;
 
 	//let configFile = "config/config.js";
-	//let configFile = "config/" + (req?.query?.client || "config") + ".js";
-	let configFile = `config/${req?.query?.client || "config"}.js`;
+	let configFile = `config/${config}.js`;
 
 	if (typeof global.configuration_file !== "undefined") {
 		configFile = global.configuration_file;
 	}
-	html = html.replace("#CONFIG_FILE#", configFile);
+	html = html.replace("#CONFIG_FILE#", configFile).replace("#CLIENT#", client).replace("#LAYOUT#", layout).replace("#CSS#", css).replace("#CONFIG#", config);
 	res.send(html);
 	Log.log(`Serving HTML with configuration: ${configFile}`);
 }
@@ -134,4 +137,21 @@ function getVersion(req, res) {
 	res.send(global.version);
 }
 
-module.exports = { cors, getConfig, getHtml, getVersion };
+/**
+ * Serve CSS files
+ * @param {*} req - the request
+ * @param {*} res - the result
+ */
+function getCSS(req, res) {
+	let cssFile = req?.param?.cssFile || null;
+	let cssPath = path.resolve(`${global.root_path}/css/${cssFile}.css`);
+	if (fs.existsSync(cssPath)) {
+		res.send(fs.readFileSync(cssPath, { encoding: "utf8" }));
+	} else {
+		const message = `/* CSS file not found: ${cssPath} */`;
+		res.send(message);
+		Log.warn(message);
+	}
+}
+
+module.exports = { cors, getConfig, getHtml, getVersion, getCSS };

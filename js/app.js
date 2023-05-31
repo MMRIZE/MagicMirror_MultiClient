@@ -53,15 +53,16 @@ function App() {
 	/**
 	 * Loads the config file. Combines it with the defaults and returns the config
 	 * @async
+	 * @param {string} config - The config file name (default: config.js)
 	 * @returns {Promise<object>} the loaded config or the defaults if something goes wrong
 	 */
-	async function loadConfig() {
-		Log.log("Loading config ...");
+	async function loadConfig(config = "config.js") {
+		Log.log(`Loading config ... ${config}`);
 		const defaults = require(`${__dirname}/defaults`);
 
 		// For this check proposed to TestSuite
 		// https://forum.magicmirror.builders/topic/1456/test-suite-for-magicmirror/8
-		const configFilename = path.resolve(global.configuration_file || `${global.root_path}/config/config.js`);
+		const configFilename = path.resolve(global.configuration_file || `${global.root_path}/config/${config}`);
 		let templateFile = `${configFilename}.template`;
 
 		// check if templateFile exists

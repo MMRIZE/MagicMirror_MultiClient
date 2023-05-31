@@ -1,6 +1,6 @@
 "use strict";
 
-const electron = require("electron");
+const { app, BrowserWindow, screen } = require("electron");
 /* no need */
 //const core = require("../app");
 const Log = require("../js/logger");
@@ -19,15 +19,12 @@ function buildURL({ protocol = "http", hostname = "localhost", port = 8080, path
 // Config
 let config = process.env.config ? JSON.parse(process.env.config) : {};
 // Module to control application life.
-const app = electron.app;
+
 // If ELECTRON_DISABLE_GPU is set electron is started with --disable-gpu flag.
 // See https://www.electronjs.org/docs/latest/tutorial/offscreen-rendering for more info.
 if (process.env.ELECTRON_DISABLE_GPU !== undefined) {
 	app.disableHardwareAcceleration();
 }
-
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -36,21 +33,24 @@ let mainWindow;
 /**
  *
  */
-function createWindow() {
+function createWindow(displayOptions = {}) {
 	let electronSwitchesDefaults = ["autoplay-policy", "no-user-gesture-required"];
 	app.commandLine.appendSwitch(...new Set(electronSwitchesDefaults, config.electronSwitches));
 	let electronOptionsDefaults = {
-		width: 800,
-		height: 600,
-		x: 0,
-		y: 0,
-		darkTheme: true,
-		webPreferences: {
-			contextIsolation: true,
-			nodeIntegration: false,
-			zoomFactor: config.zoom
+		...{
+			width: 800,
+			height: 600,
+			x: 0,
+			y: 0,
+			darkTheme: true,
+			webPreferences: {
+				contextIsolation: true,
+				nodeIntegration: false,
+				zoomFactor: config.zoom
+			},
+			backgroundColor: "#000000"
 		},
-		backgroundColor: "#000000"
+		...displayOptions
 	};
 
 	// DEPRECATED: "kioskmode" backwards compatibility, to be removed
@@ -66,6 +66,8 @@ function createWindow() {
 
 	const electronOptions = Object.assign({}, electronOptionsDefaults, config.electronOptions);
 
+	console.log(electronOptions);
+
 	// Create the browser window.
 	mainWindow = new BrowserWindow(electronOptions);
 
@@ -75,7 +77,7 @@ function createWindow() {
 	let protocol = (config["tls"] !== null && config["tls"]) || config.useHttps ? "https" : "http";
 
 	let hostname = (config.address === void 0) | (config.address === "") ? (config.address = "localhost") : config.address;
-	let url = buildURL({ protocol, hostname, port: config.port, pathname: "/", search: `?client=${config.client}` });
+	let url = buildURL({ protocol, hostname, port: config.port, pathname: "/", search: `?client=${config?.client !== "default" ? config.client : ""}` });
 	mainWindow.loadURL(url);
 
 	// Open the DevTools if run with "npm start dev"
@@ -196,8 +198,26 @@ if (["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1", undefined].includes(co
 	});
 }
 */
+
 app.whenReady().then(() => {
+	const displays = screen.getAllDisplays();
+	const display = displays.find((display) => {
+		return +display.id === +config.display;
+	});
+
+	let displayOptions = {};
+
+	if (display) {
+		displayOptions = {
+			x: display.bounds.x,
+			y: display.bounds.y
+		};
+	} else {
+		Log.warn("Display not found, using default display.");
+		const availableDisplays = displays.map((display) => `${display.id} - ${display.label}`).join(", ");
+		Log.info(`Available displays: ${availableDisplays}`);
+	}
 	Log.log("Launching application.");
 
-	createWindow();
+	createWindow(displayOptions);
 });
